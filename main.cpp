@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 
 using namespace std;
 
@@ -12,24 +13,39 @@ struct node {
   int info;
   struct node *next;
 }*start;
- 
+
 /* Class Declaration */
+template <class T>
 class SList {
   public:
-    node* create_node(int);
+    SList() {
+      start = NULL;
+    }
+
+    node* create_node(T);
     void insert_begin();
     void insert_pos();
     void insert_last(); 
     void delete_pos();
-    void sort();
-    void search();
-    void update();
-    void reverse();
     void print();
-    SList() 
-    {
-      start = NULL;
-    }
+    struct iterator; 
+
+    iterator begin();
+    iterator end();
+};
+ 
+template <class T>
+struct SList<T>::iterator {
+  public:
+    T& operator*() const;
+    iterator& operator++();
+    iterator operator++(int);
+
+  private: 
+    node* cur;
+    iterator(node* other);
+
+  friend class SList;
 };
  
 /*
@@ -37,8 +53,18 @@ class SList {
  */
 int main() {
   int choice, nodes, element, position, i;
+  string dataType;
+
+  // while(!haveDataType) {
+  //   cout << "What data type would you like? Enter: 'char' or 'int'" << endl;
+  //   cin >> dataType;
+
+  //   switch(dataType) {
+
+  //   }
+  // }
   
-  SList sl;
+  SList<int> sl;
   start = NULL;
 
   while(1) {
@@ -49,12 +75,8 @@ int main() {
     cout<<"1.Insert Node at beginning"<<endl;
     cout<<"2.Insert node at last"<<endl;
     cout<<"3.Insert node at position"<<endl;
-    cout<<"4.Sort Link List"<<endl;
     cout<<"5.Delete a Particular Node"<<endl;
-    cout<<"6.Update Node Value"<<endl;
-    cout<<"7.Search Element"<<endl;
     cout<<"8.Print Linked List"<<endl;
-    cout<<"9.Reverse Linked List "<<endl;
     cout<<"10.Exit "<<endl;
     cout<<"Enter your choice : ";
     
@@ -76,33 +98,13 @@ int main() {
         sl.insert_pos();
         cout<<endl;
         break;
-      case 4:
-        cout<<"Sort Link List: "<<endl;
-        sl.sort();
-        cout<<endl;
-        break;
       case 5:
         cout<<"Delete a particular node: "<<endl;
         sl.delete_pos();
         break;
-      case 6:
-        cout<<"Update Node Value:"<<endl;  
-        sl.update();
-        cout<<endl;
-        break;
-      case 7:
-        cout<<"Search element in Link List: "<<endl;
-        sl.search();
-        cout<<endl;
-        break;
       case 8:
         cout<<"Print elements of link list"<<endl;
         sl.print();
-        cout<<endl;
-        break;
-      case 9:
-        cout<<"Reverse elements of Link List"<<endl;
-        sl.reverse();
         cout<<endl;
         break;
       case 10:
@@ -115,10 +117,8 @@ int main() {
   }
 }
  
-/*
- * Creating Node
- */
-node *SList::create_node(int value) {
+template <class T>
+node *SList<T>::create_node(T value) {
   struct node *temp, *s;
   temp = new(struct node); 
   
@@ -132,11 +132,9 @@ node *SList::create_node(int value) {
   }
 }
  
-/*
- * Inserting element in beginning
- */
-void SList::insert_begin() {
-  int value;
+template <class T>
+void SList<T>::insert_begin() {
+  T value;
   
   cout << "Enter the value to be inserted: ";
   cin >> value;
@@ -156,11 +154,9 @@ void SList::insert_begin() {
 
   cout << "Element Inserted at beginning" << endl;
 }
- 
-/*
- * Inserting Node at last
- */
-void SList::insert_last() {
+
+template <class T>
+void SList<T>::insert_last() {
   int value;
   cout << "Enter the value to be inserted: ";
   cin >> value;
@@ -168,22 +164,26 @@ void SList::insert_last() {
   struct node *temp, *s;
 
   temp = create_node(value);
-  s = start;
 
-  while(s->next != NULL) {         
-    s = s->next;        
+  if(start == NULL) {
+    start = temp;
+    start->next = NULL;          
+  } else {
+    s = start;
+
+    while(s->next != NULL) {         
+      s = s->next;        
+    }
+
+    temp->next = NULL;
+    s->next = temp;
   }
-
-  temp->next = NULL;
-  s->next = temp;
   
   cout<<"Element Inserted at last"<<endl;  
 }
  
-/*
- * Insertion of node at a given position
- */
-void SList::insert_pos() {
+template <class T>
+void SList<T>::insert_pos() {
   int value, pos, counter = 0; 
 
   cout << "Enter the value to be inserted: ";
@@ -222,40 +222,12 @@ void SList::insert_pos() {
     ptr->next = temp;
     temp->next = s;
   } else {
-    cout<<"Positon out of range"<<endl;
+    cout << "Positon out of range" << endl;
   }
 }
  
-/*
- * Sorting Link List
- */
-void SList::sort()
-{
-  struct node *ptr, *s;
-  int value;
-  
-  if(start == NULL) {
-    cout<<"The List is empty"<<endl;
-    return;
-  }
-
-  ptr = start;
-  while (ptr != NULL) {
-    for (s = ptr->next;s !=NULL;s = s->next) {
-      if(ptr->info > s->info) {
-        value = ptr->info;
-        ptr->info = s->info;
-        s->info = value;
-      }
-    }
-    ptr = ptr->next;
-  }
-}
- 
-/*
- * Delete element at a given position
- */
-void SList::delete_pos()
+template <class T>
+void SList<T>::delete_pos()
 {
   int pos, i, counter = 0;
   if(start == NULL) {
@@ -295,108 +267,8 @@ void SList::delete_pos()
   }
 }
  
-/*
- * Update a given Node
- */
-void SList::update()
-{
-  int value, pos, i;
-  if(start == NULL) {
-    cout<<"List is empty"<<endl;
-    return;
-  }
-
-  cout<<"Enter the node postion to be updated: ";
-  cin>>pos;
-  cout<<"Enter the new value: ";
-  cin>>value;
-  
-  struct node *s, *ptr;
-  s = start;
-  
-  if(pos == 1) {
-    start->info = value; 
-  } else {
-    for(i = 0;i < pos - 1;i++) {
-      if(s == NULL) {
-        cout<<"There are less than "<<pos<<" elements";
-        return;
-      }
-      s = s->next;
-    }
-    s->info = value;  
-  }
-  cout<<"Node Updated"<<endl;
-} 
- 
-/*
- * Searching an element
- */
-void SList::search()
-{
-  int value, pos = 0;
-  bool flag = false;
-
-  if (start == NULL) {
-    cout<<"List is empty"<<endl;
-    return;
-  }
-  
-  cout << "Enter the value to be searched: ";
-  cin >> value;
-
-  struct node *s;
-  s = start;
-  
-  while (s != NULL) {
-    pos++;
-    if (s->info == value) {
-      flag = true;
-      cout<<"Element "<<value<<" is found at position "<<pos<<endl;
-    }
-    s = s->next;
-  }
-
-  if(!flag) {
-    cout<<"Element "<<value<<" not found in the list"<<endl;  
-  }
-}
- 
-/*
- * Reverse Link List
- */
-void SList::reverse()
-{
-  struct node *ptr1, *ptr2, *ptr3;
-
-  if(start == NULL) {
-    cout<<"List is empty"<<endl;
-    return;
-  }
-
-  if(start->next == NULL) {
-    return;
-  }
-
-  ptr1 = start;
-  ptr2 = ptr1->next;
-  ptr3 = ptr2->next;
-  ptr1->next = NULL;
-  ptr2->next = ptr1;
-
-  while(ptr3 != NULL) {
-    ptr1 = ptr2;
-    ptr2 = ptr3;
-    ptr3 = ptr3->next;
-    ptr2->next = ptr1;         
-  }
-  start = ptr2;
-}
- 
-/*
- * Print Elements of a link list
- */
-void SList::print()
+template <class T>
+void SList<T>::print()
 {
   struct node *temp;
   if(start == NULL) {
@@ -413,4 +285,33 @@ void SList::print()
   }
 
   cout<<"NULL"<<endl;
+}
+
+ 
+template <class T>
+SList<T>::iterator SList<T>::end() {
+  return SList::iterator(fake);
+}
+ 
+template <class T>
+SList<T>::iterator SList<T>::begin() {
+  return SList::iterator(ptr);
+}
+ 
+template <class T>
+T& SList<T>::iterator::operator*() const {
+  return cur->key;
+}
+ 
+template <class T>
+iterator SList<T>::iterator& SList<T>::iterator::operator++() {
+  cur = cur->next;
+  return *this; 
+}
+ 
+template <class T>
+iterator SList<T>::iterator SList<T>::iterator::operator++(T) {
+  iterator temp = *this;
+  cur = cur->next;
+  return temp;
 }
